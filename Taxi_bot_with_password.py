@@ -26,7 +26,7 @@ from static_map_passengers import create_static_map_order  # get static map geop
 
 # TOKEN for bot
 
-token = "5450907753:AAGip_e6A0lEacGvbQiPC-synkNfd6zCyAQ"
+token = ""
 bot = telebot.TeleBot(token)
 bot.remove_webhook()
 
