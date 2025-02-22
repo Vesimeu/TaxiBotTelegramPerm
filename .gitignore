@@ -1,2 +1,4 @@
 .env
 config.py
+base.db
+black list
