@@ -12,14 +12,14 @@ class RegisterState(StatesGroup):
     car_photo = State()    # Шаг 6: Отправка фото машины
     location = State()     # Шаг 7: Отправка геолокации
 
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
 class OrderState(StatesGroup):
-    """
-    Состояния для создания заказа.
-    """
-    start_location = State()  # Шаг 1: Начальная точка маршрута
-    end_location = State()    # Шаг 2: Конечная точка маршрута
-    price = State()           # Шаг 3: Ввод стоимости поездки
-    confirmation = State()    # Шаг 4: Подтверждение заказа
+    start_location = State()  # Начальная точка
+    end_location = State()    # Конечная точка
+    price = State()           # Цена
+    comment = State()         # Комментарий
+    confirmation = State()    # Подтверждение
 
 class DriverState(StatesGroup):
     """

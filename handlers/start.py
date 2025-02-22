@@ -4,13 +4,25 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from database.db import add_user, get_user
-from handlers.passenger import start_order
+from handlers.passenger import start_order, get_passenger_keyboard
 from states.states import RegisterState
 from bot import dp, bot  # Импортируем dp и bot из bot.py
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+
+def get_orders_keyboard(orders):
+    """
+    Создает клавиатуру с заказами и кнопками "Удалить".
+    """
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    for order in orders:
+        markup.add(KeyboardButton(f"🚖 Заказ #{order[0]}"), KeyboardButton(f"❌ Удалить заказ #{order[0]}"))
+    markup.add(KeyboardButton("Назад"))
+    return markup
 
 @dp.message_handler(Command("start"))
 async def start(message: types.Message):
@@ -22,11 +34,12 @@ async def start(message: types.Message):
         user = get_user(message.from_user.id)
 
         if user:
-            # Создаем клавиатуру с кнопками
-            markup = ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add(KeyboardButton("Мой профиль"), KeyboardButton("Создать заказ"))
-
-            await message.answer("Вы уже зарегистрированы! Выберите действие:", reply_markup=markup)
+            if user[3] == "passenger":
+                # Показываем клавиатуру для пассажира
+                await message.answer("Вы уже зарегистрированы! Выберите действие:", reply_markup=get_passenger_keyboard())
+            else:
+                # Логика для водителя (пока не трогаем)
+                await message.answer("Вы водитель. Ваши функции пока не реализованы.")
             return
 
         markup = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -76,7 +89,7 @@ async def register_role(message: types.Message, state: FSMContext):
         markup.add(KeyboardButton("Мой профиль"), KeyboardButton("Создать заказ"))
 
         await state.finish()
-        await message.answer(f"Регистрация завершена! Ваша роль: {role}. Выберите действие:", reply_markup=markup)
+        await message.answer(f"Регистрация завершена!. Выберите действие:", reply_markup=markup)
     except Exception as e:
         logger.error(f"Ошибка при выборе роли: {e}")
         await message.answer("Произошла ошибка. Пожалуйста, попробуйте снова.")

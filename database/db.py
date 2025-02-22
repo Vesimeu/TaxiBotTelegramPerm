@@ -15,7 +15,7 @@ def init_db():
         phone TEXT,
         role TEXT CHECK(role IN ('passenger', 'driver'))
     )
-    """)
+    """)  # Закрываем скобку
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS orders (
@@ -26,9 +26,10 @@ def init_db():
         end_lat REAL,
         end_lon REAL,
         price INTEGER,
+        comment TEXT,
         status TEXT CHECK(status IN ('waiting', 'accepted', 'completed'))
     )
-    """)
+    """)  # Закрываем скобку
 
     conn.commit()
     conn.close()
@@ -48,16 +49,18 @@ def get_user(user_id):
     conn.close()
     return user
 
-def create_order(user_id, start_lat, start_lon, end_lat, end_lon, price):
+def create_order(user_id, start_lat, start_lon, end_lat, end_lon, price, comment):
+    """
+    Создает новый заказ в базе данных.
+    """
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-    INSERT INTO orders (user_id, start_lat, start_lon, end_lat, end_lon, price, status)
-    VALUES (?, ?, ?, ?, ?, ?, 'waiting')
-    """, (user_id, start_lat, start_lon, end_lat, end_lon, price))
+    INSERT INTO orders (user_id, start_lat, start_lon, end_lat, end_lon, price, comment, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'waiting')
+    """, (user_id, start_lat, start_lon, end_lat, end_lon, price, comment))
     conn.commit()
     conn.close()
-
 def get_orders_by_user(user_id):
     conn = sqlite3.connect(config.DB_PATH)
     cursor = conn.cursor()
@@ -178,17 +181,6 @@ def get_user(user_id):
     conn.close()
     return user
 
-def create_order(user_id, start_lat, start_lon, end_lat, end_lon, price):
-    conn = sqlite3.connect(config.DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO orders (user_id, start_lat, start_lon, end_lat, end_lon, price, status)
-    VALUES (?, ?, ?, ?, ?, ?, 'waiting')
-    """, (user_id, start_lat, start_lon, end_lat, end_lon, price))
-    conn.commit()
-    conn.close()
-
-
 def get_orders_by_user(user_id, active_only=False):
     """
     Возвращает список заказов пользователя.
@@ -210,7 +202,15 @@ def get_orders_by_user(user_id, active_only=False):
     orders = cursor.fetchall()
     conn.close()
     return orders
-
+def delete_order_from_db(order_id):
+    """
+    Удаляет заказ из базы данных по его ID.
+    """
+    conn = sqlite3.connect(config.DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM orders WHERE id=?", (order_id,))
+    conn.commit()
+    conn.close()
 def get_available_orders():
     """Получить список всех активных заказов."""
     conn = sqlite3.connect(config.DB_PATH)
