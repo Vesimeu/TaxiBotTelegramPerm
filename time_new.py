@@ -4,7 +4,6 @@ from telebot import types
 import sqlite3
 token = "5544251503:AAGk7nbwdirjy_4h1GqwCIGzlxxrjYHYeC0"
 bot = telebot.TeleBot(token)
-# time_second = time.time().__round__()
 time_second = time.time().__round__()
 while True:
     time.sleep(5)

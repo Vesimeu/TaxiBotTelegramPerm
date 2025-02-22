@@ -1,17 +1,10 @@
-# libraries for bot
 from telebot import types
 import telebot
 import sqlite3
 import math
-import sys
-import logging
 import time
-from io import BytesIO
-import requests
-from PIL import Image
-import datetime
-from threading import Thread
-# from time_new
+import os
+from dotenv import load_dotenv
 
 from telebot import apihelper
 
@@ -25,11 +18,10 @@ from geocoder_coords import coords_to_address, addess_to_coords
 from static_map_passengers import create_static_map_order  # get static map geopos for choose order
 
 # TOKEN for bot
-
-token = ""
+load_dotenv()
+token = os.environ.get("token")
 bot = telebot.TeleBot(token)
 bot.remove_webhook()
-
 @bot.message_handler(commands=["start"])
 def start(message):
     try:
@@ -256,8 +248,6 @@ def error_ord(message,user_phone):
     else:
         mess = bot.send_message(message.chat.id, 'Ошибка,возращаю вас назад, напишите что нибудь чтобы продолжить.')
         bot.register_next_step_handler(mess, phone)
-
-
 @bot.message_handler(content_types=['text'])
 def error_start(message):
     if message.text == '/start' or '/phone':
@@ -324,26 +314,19 @@ def setting_taxi(message,phone_taxi,teg_id):
 def choose_character(message, user_phone):  # choose taxi_drivers or passenger
     if message.text == 'Таксист':
         mes = bot.send_message(message.chat.id,'Напишите код.Если у вас его нет, и вы хотите стать таксистом, то напишите сюда:@vesimeu',reply_markup=types.ReplyKeyboardRemove())
-        # mess = bot.send_message(message.chat.id, "Введите марку и модель машины.", reply_markup=types.ReplyKeyboardRemove())
         markup_taxi = types.ReplyKeyboardMarkup(resize_keyboard=True)
         button_taxi = types.KeyboardButton(text='Назад')
         markup_taxi.add(button_taxi)
         mes_back = bot.send_message(message.chat.id,'Можете вернуться назад:',reply_markup=markup_taxi)
-        # mes = bot.send_message(message.chat.id,'Если хотите вернуться назад, нажмите назад:')
         bot.register_next_step_handler(mes_back, taxi_password, phone = user_phone)
-
-
     elif message.text == 'Пассажир':
-
         # connect to base
         mydb = sqlite3.connect('base.db')
         mycursor = mydb.cursor()
-
         # Add new passenger in 'passengers' table
         sqlFormula = "INSERT INTO passengers ('phone', 'teg_id') VALUES (?,?)"
         mycursor.execute(sqlFormula, (user_phone, message.chat.id))
         mydb.commit()
-
         keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
         button_loca = types.KeyboardButton(text="🌐 Определить местоположение", request_location=True)
         keyboard.add(button_loca)
@@ -360,17 +343,11 @@ def taxi_password(message,phone):
     else:
         msg = bot.send_message(message.chat.id, "Возращаю назад... для продолжение что-нибудь напишите.",)
         bot.register_next_step_handler(msg, start)
-
-
-
-
-
 @bot.message_handler(content_types=['text'])  # machine_firm
 def machine_firm(message, phone):
     firm = message.text
     mess = bot.send_message(message.chat.id, "Введите номер машины.", reply_markup=types.ReplyKeyboardRemove())
     bot.register_next_step_handler(mess, car_numbers_def, phone, firm)
-
 
 @bot.message_handler(content_types=['text'])  # car_numbers
 def car_numbers_def(message, phone, machine_firm):
@@ -415,7 +392,6 @@ def geo_location(message, phone = None, job = None, firm=None, car_numbers=None,
         latitude = message.location.latitude #Координаты !
         longitude = message.location.longitude  #
         dict_length = {}
-
         address_location = coords_to_address(longitude, latitude)  # get address from coords, function file geocoder.py
         bot.send_message(message.chat.id, address_location, reply_markup=types.ReplyKeyboardRemove())
 
@@ -751,7 +727,6 @@ def comment(message,phone,longitude_start, latitude_start, longitude_end,
     bot.send_message(message.chat.id,
                      f"<i><b>Ваш заказ.</b></i>\n\n<i><b>Начальная точка:</b></i> {first_checkpoint}\n\n<i><b>Конечная точка:</b></i> {second_checkpoint}\n\n<i><b>Расстояние:</b></i> {length_way} м\n\n<i><b>Время пути:</b></i> {time_way} мин\n\n<b>Цена:</b> {price_way_mes} ₽\n\n<i><b>Комментарий:</b></i> {comment}",
                      parse_mode='HTML', reply_markup=types.ReplyKeyboardRemove())
-    # bot.send_message(message.chat.id,c)
     mydb = sqlite3.connect('base.db')
     mycursor = mydb.cursor()
     sqlFormula = "INSERT INTO orders ('phone', 'longitude_start', 'latitude_start', 'longitude_end', 'latitude_end', 'price', 'length_way', 'time_way', 'teg_id', 'comment','time') VALUES (?,?,?,?,?,?,?,?,?,?,?)"
@@ -768,15 +743,4 @@ def comment(message,phone,longitude_start, latitude_start, longitude_end,
     bot.register_next_step_handler(msg_ord, func_ord, phone = phone,comment_users = comment,price = price_way_mes)
 
 if __name__ == '__main__':
-    # while True:
-    #     try:
-    #         bot.polling(none_stop=True)
-    #
-    #     except:
-    #         print('bolt')
-    #         logging.error('error: {}'.format(sys.exc_info()[0]))
-    #         time.sleep(3)
-
-
-
     bot.polling(none_stop=True)

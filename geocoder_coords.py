@@ -40,7 +40,7 @@ def coords_to_address(x, y):
         print("Http статус:", response.status_code, "(", response.reason, ")")
 
 
-def addess_to_coords(address):
+def address_to_coords(address):
     # geocoder_request = f"https://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={address}&format=json"
     # geocoder_request = f'https://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={address}&ll=58.051264, 56.597753&format=json'
     geocoder_request = f'https://geocode-maps.yandex.ru/1.x/?apikey=40d1649f-0493-4b70-98ba-98533de7710b&geocode={address}&ll=58.051264, 56.597753&spn=3.552069,2.400552&format=json'
